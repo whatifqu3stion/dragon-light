@@ -59,7 +59,6 @@ constexpr uint32_t kFunAnimationDurationMs = 2400;
 constexpr uint32_t kFunAnimationMinIntervalMs = 10UL * 60UL * 1000UL;
 constexpr uint32_t kFunAnimationMaxIntervalMs = 10UL * 60UL * 1000UL;
 
-// Populate these once the real class transition windows are known.
 struct TransitionWindow {
   uint8_t startHour;
   uint8_t startMinute;
@@ -67,6 +66,17 @@ struct TransitionWindow {
   uint8_t endMinute;
 };
 
-constexpr std::array<TransitionWindow, 0> kTransitions = {};
+// Final five minutes before each class/advisory starts. During these windows the
+// day letter temporarily becomes a 5→1 countdown with increasing pulse urgency.
+// Break/lunch themselves stay in normal day-letter mode until their final five
+// minutes before the next class.
+constexpr std::array<TransitionWindow, 6> kTransitions = {{
+    {8, 25, 8, 30},    // 1st
+    {9, 30, 9, 35},    // 2nd
+    {10, 50, 10, 55},  // 3rd, after morning break
+    {11, 55, 12, 0},   // Advisory
+    {13, 20, 13, 25},  // 4th, after lunch/break
+    {14, 25, 14, 30},  // 5th
+}};
 
 }  // namespace config
