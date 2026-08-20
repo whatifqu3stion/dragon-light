@@ -54,10 +54,10 @@ constexpr uint8_t kSleepMinute = 45;
 constexpr uint32_t kWifiConnectTimeoutMs = 15000;
 constexpr uint32_t kTimeSyncTimeoutMs = 12000;
 
-// Small ambient flourish: brief and intentionally infrequent.
+// Brief highlight sweep every 10 minutes. The day letter remains visible.
 constexpr uint32_t kFunAnimationDurationMs = 2400;
-constexpr uint32_t kFunAnimationMinIntervalMs = 12UL * 60UL * 1000UL;
-constexpr uint32_t kFunAnimationMaxIntervalMs = 20UL * 60UL * 1000UL;
+constexpr uint32_t kFunAnimationMinIntervalMs = 10UL * 60UL * 1000UL;
+constexpr uint32_t kFunAnimationMaxIntervalMs = 10UL * 60UL * 1000UL;
 
 // Populate these once the real class transition windows are known.
 struct TransitionWindow {
