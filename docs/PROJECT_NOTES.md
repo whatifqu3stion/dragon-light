@@ -18,8 +18,26 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
 - Weekends and `NONE` / `NO CLASS`: off.
 - Normal letter: slow palette drift + gentle breathing.
 - Every 10 minutes: one brief highlight sweep while the letter remains readable.
-- Transitions: one-digit countdown; pulse frequency increases toward class time.
+- Final five minutes before each class/advisory: one-digit countdown; pulse frequency increases toward start time.
 - OTA updates are required because the finished unit may be mounted out of reach.
+
+## School-day schedule
+
+| Block | Time |
+|---|---|
+| 1st | 08:30-09:30 |
+| 2nd | 09:35-10:35 |
+| Break | 10:35-10:50 |
+| 3rd | 10:55-11:55 |
+| Advisory | 12:00-12:25 |
+| Break / lunch | 12:30-13:20 |
+| 4th | 13:25-14:25 |
+| 5th | 14:30-15:30 |
+
+Countdown windows are 08:25-08:30, 09:30-09:35, 10:50-10:55,
+11:55-12:00, 13:20-13:25, and 14:25-14:30. The 12:25-12:30 move
+into break is intentionally left in normal day-letter mode because it is not a
+countdown to class.
 
 ## Confirmed hardware
 
@@ -41,4 +59,3 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
 1. D1/GPIO5 is the physical data connection used in the final wiring.
 2. 26-index physical LED map using the `scan` command.
 3. Power supply current rating and practical brightness ceiling.
-4. Real bell/transition windows.
