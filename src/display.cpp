@@ -57,7 +57,8 @@ constexpr GlyphMask kOuterVerticals =
 }  // namespace
 
 void SegmentDisplay::begin() {
-  FastLED.addLeds<NEOPIXEL, config::kLedDataPin>(leds_, config::kLedCount);
+  // Confirmed strip type: 5V WS2812B ECO, normal GRB channel order.
+  FastLED.addLeds<WS2812B, config::kLedDataPin, GRB>(leds_, config::kLedCount);
   FastLED.setBrightness(config::kMaxBrightness);
   clear(true);
 }

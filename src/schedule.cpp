@@ -1,14 +1,14 @@
 #include "schedule.h"
 
-#include <HTTPClient.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
 #include <LittleFS.h>
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
+#include <WiFiClientSecureBearSSL.h>
 
 #include "config.h"
 
 bool ScheduleManager::begin() {
-  if (!LittleFS.begin(true)) {
+  if (!LittleFS.begin()) {
     Serial.println("[schedule] LittleFS mount failed");
     return false;
   }
@@ -21,7 +21,7 @@ bool ScheduleManager::loadCached() {
     return false;
   }
 
-  File file = LittleFS.open(config::kScheduleCachePath, FILE_READ);
+  File file = LittleFS.open(config::kScheduleCachePath, "r");
   if (!file) return false;
 
   csv_ = file.readString();
@@ -31,7 +31,7 @@ bool ScheduleManager::loadCached() {
 }
 
 bool ScheduleManager::saveCached() const {
-  File file = LittleFS.open(config::kScheduleCachePath, FILE_WRITE);
+  File file = LittleFS.open(config::kScheduleCachePath, "w");
   if (!file) return false;
   const size_t written = file.print(csv_);
   file.close();
@@ -48,14 +48,14 @@ bool ScheduleManager::refreshFromNetwork() {
     return false;
   }
 
-  WiFiClientSecure client;
-  // The feed is intended to be public/non-sensitive. This keeps setup simple,
-  // but does not authenticate the TLS peer; see the README security note.
-  client.setInsecure();
+  std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+  // The feed is public/non-sensitive. This keeps setup simple, but does not
+  // authenticate the TLS peer; see the README security note.
+  client->setInsecure();
 
   HTTPClient http;
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  if (!http.begin(client, config::kScheduleUrl)) {
+  if (!http.begin(*client, config::kScheduleUrl)) {
     Serial.println("[schedule] HTTP begin failed");
     return false;
   }
@@ -95,7 +95,7 @@ String ScheduleManager::cleanField(String value) {
 }
 
 char ScheduleManager::rotationForDate(const String& isoDate) const {
-  if (csv_.isEmpty()) return '\0';
+  if (csv_.length() == 0) return '\0';
 
   int lineStart = 0;
   while (lineStart < csv_.length()) {
@@ -106,7 +106,7 @@ char ScheduleManager::rotationForDate(const String& isoDate) const {
     line.trim();
     lineStart = lineEnd + 1;
 
-    if (line.isEmpty() || line.startsWith("date,")) continue;
+    if (line.length() == 0 || line.startsWith("date,")) continue;
 
     const int comma1 = line.indexOf(',');
     if (comma1 < 0) continue;

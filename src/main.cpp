@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <WiFi.h>
-#include <esp_system.h>
+#include <ESP8266WiFi.h>
 
 #include "config.h"
 #include "display.h"
@@ -32,7 +31,7 @@ uint32_t nextFunAt = 0;
 uint32_t randomFunDelay() {
   const uint32_t span = config::kFunAnimationMaxIntervalMs -
                         config::kFunAnimationMinIntervalMs;
-  return config::kFunAnimationMinIntervalMs + (esp_random() % (span + 1));
+  return config::kFunAnimationMinIntervalMs + random(span + 1);
 }
 
 void scheduleNextFun(uint32_t nowMs) { nextFunAt = nowMs + randomFunDelay(); }
@@ -44,7 +43,7 @@ void connectWifi() {
   }
 
   WiFi.mode(WIFI_STA);
-  WiFi.setHostname(config::kHostname);
+  WiFi.hostname(config::kHostname);
   WiFi.setAutoReconnect(true);
   WiFi.persistent(false);
   WiFi.begin(config::kWifiSsid, config::kWifiPassword);
@@ -55,6 +54,7 @@ void connectWifi() {
          millis() - started < config::kWifiConnectTimeoutMs) {
     Serial.print('.');
     delay(250);
+    yield();
   }
   Serial.println();
 
@@ -66,9 +66,7 @@ void connectWifi() {
 }
 
 void setupOta() {
-  if (WiFi.status() != WL_CONNECTED || strlen(config::kOtaPassword) == 0) {
-    return;
-  }
+  if (WiFi.status() != WL_CONNECTED || strlen(config::kOtaPassword) == 0) return;
 
   ArduinoOTA.setHostname(config::kHostname);
   ArduinoOTA.setPassword(config::kOtaPassword);
@@ -90,7 +88,6 @@ void setupOta() {
 
 bool findTransition(const tm& now, uint32_t& secondsLeft) {
   const int nowSeconds = now.tm_hour * 3600 + now.tm_min * 60 + now.tm_sec;
-
   for (const auto& window : config::kTransitions) {
     const int start = window.startHour * 3600 + window.startMinute * 60;
     const int end = window.endHour * 3600 + window.endMinute * 60;
@@ -112,9 +109,7 @@ void maybeRefreshSchedule(const tm& now) {
 
   constexpr uint32_t kRetryIntervalMs = 15UL * 60UL * 1000UL;
   if (lastScheduleAttemptMs != 0 &&
-      millis() - lastScheduleAttemptMs < kRetryIntervalMs) {
-    return;
-  }
+      millis() - lastScheduleAttemptMs < kRetryIntervalMs) return;
 
   lastScheduleAttemptMs = millis();
   if (schedule.refreshFromNetwork()) lastRefreshDate = today;
@@ -216,7 +211,7 @@ void printHelp() {
 
 void handleCommand(String command) {
   command.trim();
-  if (command.isEmpty()) return;
+  if (command.length() == 0) return;
 
   if (command == "auto") {
     mode = ManualMode::Auto;
@@ -253,7 +248,7 @@ void handleSerial() {
   while (Serial.available()) {
     const char c = static_cast<char>(Serial.read());
     if (c == '\n' || c == '\r') {
-      if (!buffer.isEmpty()) {
+      if (buffer.length() > 0) {
         handleCommand(buffer);
         buffer = "";
       }
@@ -301,6 +296,9 @@ void setup() {
   delay(250);
   Serial.println("\nDragon Light booting...");
 
+  // Seed the non-security animation PRNG with device/runtime entropy.
+  randomSeed(ESP.getChipId() ^ micros());
+
   display.begin();
   schedule.begin();
   connectWifi();
@@ -324,4 +322,5 @@ void loop() {
   handleSerial();
   renderManual(millis());
   delay(20);
+  yield();
 }
