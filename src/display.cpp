@@ -5,7 +5,7 @@ namespace {
 
 // Physical LED routing, named from the FRONT of the display. The strip was
 // mapped from the back, so left/right have already been flipped here.
-// LEDs 4,5,15,16 are hidden travel pixels and never intentionally light.
+// LEDs 4,5,15,16,22 are hidden travel pixels and never intentionally light.
 constexpr uint8_t kLowerRightV[] = {0, 1};
 constexpr uint8_t kUpperRightV[] = {2, 3};
 constexpr uint8_t kTopRightH[] = {6};
@@ -20,8 +20,8 @@ constexpr uint8_t kUpperLeftDiag[] = {18};
 constexpr uint8_t kMiddleLeftH[] = {19};
 constexpr uint8_t kLowerLeftDiag[] = {20};
 constexpr uint8_t kBottomLeftH[] = {21};
-constexpr uint8_t kLowerLeftV[] = {22, 23};
-constexpr uint8_t kUpperLeftV[] = {24, 25};
+constexpr uint8_t kLowerLeftV[] = {23, 24};
+constexpr uint8_t kUpperLeftV[] = {25, 26};
 
 struct SegmentPixels {
   const uint8_t* pixels;
