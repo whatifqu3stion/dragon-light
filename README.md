@@ -4,13 +4,14 @@ Dragon Light is a NodeMCU ESP8266-powered, single-character 16-segment classroom
 
 Most of the day it quietly shows today's rotation letter in a day-specific color palette. It gets time over Wi-Fi, reads the rotation from a published schedule source, counts down class transitions, celebrates the end of the day, sleeps overnight, and supports OTA firmware updates for a display mounted out of reach.
 
-> **Status:** first hardware pass. The controller, LED strip, and bell schedule are identified; the data connection, final LED map, and power supply still need bench verification.
+> **Status:** first hardware pass. The controller, LED strip, bell schedule, and woven LED route are identified; the data connection, powered LED-map verification, and power supply still need bench verification.
 
 ## Hardware
 
 - NodeMCU v1.0 / ESP8266 (ESP-12E-family layout)
 - 5V WS2812B ECO RGB strip, 60 LEDs/m
-- 26 physical pixels in this display: 22 visible + 4 hidden travel pixels
+- 27 physical pixels in this display: 22 visible + 5 hidden travel pixels
+- hidden/off pixel indexes: `4`, `5`, `15`, `16`, `22`
 - D1 / GPIO5 is the recommended data output
 - one shared regulated 5V supply can power the LEDs and NodeMCU via VIN/5V
 - all grounds must be common
@@ -81,9 +82,9 @@ Installation-specific source URLs belong in ignored `include/local_config.h`, **
 
 Changing rows in the already-published sheet does **not** require a firmware update; the device will see the new data on its next refresh.
 
-### Planned live cross-check: school calendar
+### Planned live source: school calendar
 
-A public school calendar can provide a stronger live source when rotation changes occur after snow days or other calendar adjustments. The intended implementation is to use a machine-readable iCal/ICS feed and accept only exact all-day event titles of the form:
+The school calendar is likely to be the most current source when rotation changes occur after snow days or other calendar adjustments. The intended implementation is to use its public machine-readable iCal/ICS feed and accept only exact all-day event titles of the form:
 
 ```text
 Day B
@@ -98,13 +99,15 @@ Day N
 
 Everything else on the calendar is ignored.
 
-Once implemented, the intended precedence is:
+Once implemented, schedule precedence will be:
 
 1. valid calendar `Day X` event for today → use it
 2. otherwise use the CSV / cached CSV value
 3. if both sources contain letters but disagree → use the calendar value and log the mismatch
 
 The Google Calendar **embed URL is not the feed URL**. Use the calendar's public iCal/ICS address when adding this source. Calendar cross-checking is documented here for future setup but is **not yet implemented in firmware**.
+
+This keeps the CSV as a reliable fallback for missing calendar entries, network failures, or incomplete calendar history while allowing the official calendar to become the live authority.
 
 ## Setup
 
@@ -118,7 +121,7 @@ pio run -e usb -t upload
 pio device monitor -b 115200
 ```
 
-5. Run `scan` and verify all 26 physical LED indexes.
+5. Run `scan` and verify all 27 physical LED indexes (`0..26`).
 
 Useful serial commands:
 
@@ -155,7 +158,7 @@ No Wi-Fi credentials, OTA password, or installation-specific schedule URL belong
 
 The public schedule fetch currently uses an insecure TLS client to avoid hard-coding Google's changing certificate chain. That is reasonable for a non-sensitive classroom status feed, but it does not authenticate the TLS peer; use CA validation if your deployment requires stronger guarantees.
 
-## Built with
+## Built with and credits
 
 Thanks to the open-source projects doing the heavy lifting:
 
@@ -163,12 +166,14 @@ Thanks to the open-source projects doing the heavy lifting:
 - [ESP8266 Arduino Core](https://github.com/esp8266/Arduino) — Wi-Fi, NTP, LittleFS, HTTPS, and OTA foundations
 - [PlatformIO](https://platformio.org/) — reproducible builds, dependencies, and uploads
 
+The 3D display/enclosure geometry used for this specific build came from a purchased [Cults3D model](https://cults3d.com/en/orders/164606964). The 3D model files are **not** redistributed by this repository and remain under their original license.
+
 Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 
 ## Next steps
 
 - verify D1/GPIO5 is the actual physical data connection
-- verify the 26-index LED map with `scan`
+- verify the 27-index LED map with `scan`
 - confirm the 5V power supply rating
 - add the public iCal/ICS rotation cross-check
 - tune brightness and animation intensity in the classroom
