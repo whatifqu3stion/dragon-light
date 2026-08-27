@@ -31,7 +31,7 @@ constexpr char kScheduleUrl[] = DRAGON_LIGHT_SCHEDULE_URL;
 // D1 is GPIO5 on the NodeMCU. This is our recommended data pin; verify the
 // physical wire is actually connected here before installation.
 constexpr uint8_t kLedDataPin = D1;
-constexpr uint16_t kLedCount = 26;
+constexpr uint16_t kLedCount = 27;
 constexpr uint8_t kMaxBrightness = 128;
 constexpr char kHostname[] = "dragon-light";
 constexpr char kScheduleCachePath[] = "/schedule.csv";
