@@ -41,7 +41,7 @@ class SegmentDisplay {
   uint16_t ledCount() const;
 
  private:
-  CRGB leds_[26]{};
+  CRGB leds_[27]{};
 };
 
 GlyphMask glyphForChar(char c);
