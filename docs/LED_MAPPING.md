@@ -22,13 +22,18 @@ even though the strip was mapped from the back.
 | 19 | Middle-left horizontal |
 | 20 | Lower-left diagonal |
 | 21 | Bottom-left horizontal |
-| 22-23 | Lower-left outer vertical |
-| 24-25 | Upper-left outer vertical |
+| 22 | Hidden / always off |
+| 23-24 | Lower-left outer vertical |
+| 25-26 | Upper-left outer vertical |
 
-That is **26 physical LEDs**, **22 visible**, and **4 hidden travel LEDs**.
-The hidden pixels let the original builder snake one continuous strand through
-the enclosure instead of cutting and soldering sixteen separate pieces.
+That is **27 physical LEDs**, **22 visible**, and **5 hidden travel LEDs**.
+The hidden pixels let one continuous strand snake through the enclosure instead
+of requiring many short cut-and-soldered strip sections.
 
-This map is still provisional. After the first USB flash, run `scan` in the
-serial monitor; the firmware will light indexes `0..25` one at a time. If a
-segment differs, change only the physical map in `src/display.cpp`.
+Firmware uses zero-based indexing, so the first physical LED is LED `0`.
+The hidden/off indexes are **4, 5, 15, 16, and 22**.
+
+This route has been checked while weaving the strip into the enclosure but still
+needs one powered verification pass. After the first USB flash, run `scan`; the
+firmware will light indexes `0..26` one at a time. If a segment differs, change
+only the physical map in `src/display.cpp`.
