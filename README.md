@@ -2,9 +2,9 @@
 
 Dragon Light is a NodeMCU ESP8266-powered, single-character 16-segment classroom display for an eight-day rotation that spells **B E D R A G O N**.
 
-Most of the day it quietly shows today's rotation letter in a day-specific color palette. It gets time over Wi-Fi, reads the rotation from a published CSV, counts down class transitions, celebrates the end of the day, sleeps overnight, and supports OTA firmware updates for a display mounted out of reach.
+Most of the day it quietly shows today's rotation letter in a day-specific color palette. It gets time over Wi-Fi, reads the rotation from a published schedule source, counts down class transitions, celebrates the end of the day, sleeps overnight, and supports OTA firmware updates for a display mounted out of reach.
 
-> **Status:** first hardware pass. The controller and LED strip are now identified; the data connection, final LED map, power supply, and bell schedule still need bench verification.
+> **Status:** first hardware pass. The controller, LED strip, and bell schedule are identified; the data connection, final LED map, and power supply still need bench verification.
 
 ## Hardware
 
@@ -22,7 +22,7 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 
 - `B E D R A G O N` glyphs, digits, and a segmented smile
 - distinct day palettes with slow gradient drift and gentle breathing
-- occasional short highlight animation rather than constant motion
+- brief highlight sweep every 10 minutes while the day letter remains readable
 - one-digit transition countdown with increasing pulse urgency
 - Denver/Mountain Time NTP clock with automatic DST handling
 - published-CSV schedule sync with a LittleFS cached fallback
@@ -49,7 +49,7 @@ The unusual strip routing is isolated in `src/display.cpp`, so the font and effe
 
 ## Schedule format
 
-Any stable HTTPS endpoint returning this shape will work:
+The currently implemented source is a published CSV. Any stable HTTPS endpoint returning this shape will work:
 
 ```csv
 date,weekday,rotation,special
@@ -61,6 +61,50 @@ date,weekday,rotation,special
 `rotation` may be `B`, `E`, `D`, `R`, `A`, `G`, `O`, `N`, `NONE`, or `NO CLASS`. The `special` column is currently ignored. A Google Sheet published with `?output=csv` is convenient.
 
 The device fetches at boot and once each school morning, then keeps the last good copy in LittleFS so a temporary Wi-Fi outage does not erase the calendar.
+
+## Updating schedule sources
+
+Installation-specific source URLs belong in ignored `include/local_config.h`, **not** in this public repository.
+
+### Current source: published CSV
+
+1. Maintain the rotation in a Google Sheet or another source that can publish raw CSV over HTTPS.
+2. Keep one row per date. Use `NONE` or `NO CLASS` for dates when the display should stay dark.
+3. Publish/export the sheet as CSV.
+4. Set that URL in `include/local_config.h`:
+
+```cpp
+#define DRAGON_LIGHT_SCHEDULE_URL "https://example.com/rotation.csv"
+```
+
+5. Reboot the device or run `sync` over serial to force an immediate refresh. Otherwise it refreshes automatically each school morning.
+
+Changing rows in the already-published sheet does **not** require a firmware update; the device will see the new data on its next refresh.
+
+### Planned live cross-check: school calendar
+
+A public school calendar can provide a stronger live source when rotation changes occur after snow days or other calendar adjustments. The intended implementation is to use a machine-readable iCal/ICS feed and accept only exact all-day event titles of the form:
+
+```text
+Day B
+Day E
+Day D
+Day R
+Day A
+Day G
+Day O
+Day N
+```
+
+Everything else on the calendar is ignored.
+
+Once implemented, the intended precedence is:
+
+1. valid calendar `Day X` event for today → use it
+2. otherwise use the CSV / cached CSV value
+3. if both sources contain letters but disagree → use the calendar value and log the mismatch
+
+The Google Calendar **embed URL is not the feed URL**. Use the calendar's public iCal/ICS address when adding this source. Calendar cross-checking is documented here for future setup but is **not yet implemented in firmware**.
 
 ## Setup
 
@@ -126,7 +170,7 @@ Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 - verify D1/GPIO5 is the actual physical data connection
 - verify the 26-index LED map with `scan`
 - confirm the 5V power supply rating
-- add the real bell/transition windows
+- add the public iCal/ICS rotation cross-check
 - tune brightness and animation intensity in the classroom
 
 For current design decisions, see [`docs/PROJECT_NOTES.md`](docs/PROJECT_NOTES.md).
