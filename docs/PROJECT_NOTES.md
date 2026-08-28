@@ -12,7 +12,10 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
 - A public school-calendar iCal/ICS feed is planned as the higher-priority live source once its feed URL is available.
 - Intended schedule precedence: valid exact calendar `Day X` event → CSV → cached CSV; if calendar and CSV disagree, calendar wins and the mismatch is logged.
 - Calendar matching must be exact: `Day B`, `Day E`, `Day D`, `Day R`, `Day A`, `Day G`, `Day O`, or `Day N`; unrelated calendar events are ignored.
-- Installation-specific source URLs stay in ignored `include/local_config.h` with Wi-Fi and OTA settings.
+- Installation-specific schedule URLs stay in ignored `include/local_config.h` with OTA/setup passwords.
+- Wi-Fi SSID/password are not compiled into firmware. WiFiManager provisions them through `Dragon-Light-Setup` and stores them on the ESP8266.
+- If saved Wi-Fi cannot be reached at boot, the setup portal runs for up to three minutes, then firmware continues offline/cached.
+- `resetwifi` clears saved credentials and restarts provisioning.
 - `*` markers in the CSV source are ignored for now.
 - Denver local time comes from NTP with automatic MST/MDT handling.
 - 07:30: wake and show the day letter.
@@ -51,6 +54,7 @@ countdown to class.
 - D1 / GPIO5 is the recommended firmware data pin.
 - One shared regulated 5V supply is appropriate for NodeMCU VIN/5V + LEDs, with common ground.
 - A 74AHCT125 level shifter and ~330-470 Ω series data resistor are recommended for the permanent build.
+- ESP8266 Wi-Fi is 2.4 GHz only; simple captive-portal provisioning assumes normal SSID/password authentication, not WPA2-Enterprise/802.1X.
 
 ## 3D model source
 
@@ -70,4 +74,5 @@ The model files are not redistributed in this repository and remain subject to t
 1. D1/GPIO5 is the physical data connection used in the final wiring.
 2. Powered 27-index physical LED-map verification using the `scan` command.
 3. Power supply current rating and practical brightness ceiling.
-4. Public iCal/ICS feed URL and calendar parser behavior on-device.
+4. Captive-portal provisioning against the actual installation Wi-Fi.
+5. Public iCal/ICS feed URL and calendar parser behavior on-device.
