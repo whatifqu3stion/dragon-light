@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
+#include <WiFiManager.h>
 
 #include "config.h"
 #include "display.h"
@@ -37,32 +38,43 @@ uint32_t randomFunDelay() {
 void scheduleNextFun(uint32_t nowMs) { nextFunAt = nowMs + randomFunDelay(); }
 
 void connectWifi() {
-  if (strlen(config::kWifiSsid) == 0) {
-    Serial.println("[wifi] No credentials configured; running offline/manual");
-    return;
-  }
-
   WiFi.mode(WIFI_STA);
   WiFi.hostname(config::kHostname);
   WiFi.setAutoReconnect(true);
-  WiFi.persistent(false);
-  WiFi.begin(config::kWifiSsid, config::kWifiPassword);
 
-  Serial.printf("[wifi] Connecting to %s", config::kWifiSsid);
-  const uint32_t started = millis();
-  while (WiFi.status() != WL_CONNECTED &&
-         millis() - started < config::kWifiConnectTimeoutMs) {
-    Serial.print('.');
-    delay(250);
-    yield();
-  }
-  Serial.println();
+  WiFiManager manager;
+  manager.setConnectTimeout(config::kWifiConnectTimeoutSeconds);
+  manager.setConfigPortalTimeout(config::kConfigPortalTimeoutSeconds);
 
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("[wifi] Connected: %s\n", WiFi.localIP().toString().c_str());
+  Serial.println("[wifi] Trying saved Wi-Fi credentials");
+  Serial.printf("[wifi] If needed, setup AP: %s\n", config::kSetupApName);
+
+  bool connected = false;
+  const size_t setupPasswordLength = strlen(config::kSetupApPassword);
+  if (setupPasswordLength >= 8) {
+    connected = manager.autoConnect(config::kSetupApName,
+                                    config::kSetupApPassword);
   } else {
-    Serial.println("[wifi] Timed out; cached schedule remains usable");
+    if (setupPasswordLength > 0) {
+      Serial.println("[wifi] Setup password is under 8 characters; using open setup AP");
+    }
+    connected = manager.autoConnect(config::kSetupApName);
   }
+
+  if (connected && WiFi.status() == WL_CONNECTED) {
+    Serial.printf("[wifi] Connected to %s: %s\n",
+                  WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+  } else {
+    Serial.println("[wifi] Setup/connect timed out; cached schedule remains usable");
+  }
+}
+
+void resetWifi() {
+  WiFiManager manager;
+  manager.resetSettings();
+  Serial.println("[wifi] Saved credentials cleared; restarting into setup mode");
+  delay(500);
+  ESP.restart();
 }
 
 void setupOta() {
@@ -206,7 +218,7 @@ void printStatus() {
 }
 
 void printHelp() {
-  Serial.println("Commands: auto | scan | led N | glyph X | smile | off | sync | status | help");
+  Serial.println("Commands: auto | scan | led N | glyph X | smile | off | sync | resetwifi | status | help");
 }
 
 void handleCommand(String command) {
@@ -234,6 +246,8 @@ void handleCommand(String command) {
       clockReady = syncClock();
       schedule.refreshFromNetwork();
     }
+  } else if (command == "resetwifi") {
+    resetWifi();
   } else if (command == "status") {
     printStatus();
   } else if (command == "help") {
