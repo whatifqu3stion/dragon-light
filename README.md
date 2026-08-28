@@ -29,8 +29,9 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 - published-CSV schedule sync with a LittleFS cached fallback
 - weekends / `NONE` / `NO CLASS` automatically off
 - 07:30 wake, 15:30 celebration, 15:45 sleep
+- captive-portal Wi-Fi setup with credentials stored on the device
 - password-protected Arduino OTA updates
-- serial diagnostics including LED-by-LED mapping
+- serial diagnostics including LED-by-LED mapping and Wi-Fi reset
 
 ## Architecture
 
@@ -109,10 +110,10 @@ The Google Calendar **embed URL is not the feed URL**. Use the calendar's public
 
 This keeps the CSV as a reliable fallback for missing calendar entries, network failures, or incomplete calendar history while allowing the official calendar to become the live authority.
 
-## Setup
+## First setup
 
 1. Install [PlatformIO](https://platformio.org/) and open the project.
-2. Copy `include/local_config.example.h` to `include/local_config.h` and add your Wi-Fi credentials, OTA password, and published CSV URL. The real file is ignored by git.
+2. Copy `include/local_config.example.h` to `include/local_config.h`. Set the OTA password, published CSV URL, and optionally a private password for the temporary setup access point. **Wi-Fi SSID/password do not go in this file.**
 3. Wire the LED data input to NodeMCU **D1 / GPIO5** unless you intentionally change `kLedDataPin` in `include/config.h`.
 4. Flash once over USB:
 
@@ -121,7 +122,14 @@ pio run -e usb -t upload
 pio device monitor -b 115200
 ```
 
-5. Run `scan` and verify all 27 physical LED indexes (`0..26`).
+5. On first boot, Dragon Light tries any Wi-Fi credentials already stored on the ESP8266. If none work, it creates a temporary network named **`Dragon-Light-Setup`**.
+6. Connect a phone/laptop to `Dragon-Light-Setup`, choose the desired 2.4 GHz Wi-Fi network, enter its password, and save. The captive portal usually opens automatically; if it does not, browse to `192.168.4.1`.
+7. The ESP8266 stores those Wi-Fi credentials in its own flash and reconnects automatically on later boots. They are not compiled into the firmware or committed to GitHub.
+8. Run `scan` and verify all 27 physical LED indexes (`0..26`).
+
+The setup portal waits for up to three minutes, then the firmware continues with any cached schedule it has. On a later reboot, it will try setup again if no saved network works.
+
+**Wi-Fi compatibility:** ESP8266 supports 2.4 GHz Wi-Fi. This setup flow is intended for normal SSID/password networks. WPA2-Enterprise / 802.1X school networks require different authentication code or a suitable guest/IoT network.
 
 Useful serial commands:
 
@@ -133,9 +141,16 @@ glyph B    show a glyph
 smile      show the segmented smile
 off        force LEDs off
 sync       refresh time + schedule now
+resetwifi  erase saved Wi-Fi and restart setup
 status     print current state
 help       list commands
 ```
+
+## Changing Wi-Fi later
+
+If the network name or password changes, send `resetwifi` over the serial monitor. Dragon Light clears the stored credentials, restarts, and broadcasts `Dragon-Light-Setup` again.
+
+If the old network simply becomes unavailable, a reboot also triggers the setup portal automatically after the saved connection attempt fails. This means the finished unit does not normally need to be removed from the wall just to change Wi-Fi.
 
 ## OTA updates
 
@@ -150,11 +165,11 @@ The default mDNS hostname is `dragon-light.local`. Keep USB access available as 
 
 ## Failure behavior
 
-If time is unavailable, Dragon Light stays dark. If a schedule refresh fails, it keeps the last valid cached copy. Weekends and explicit no-class dates are dark. A missing weekday entry shows a soft amber dash rather than guessing the rotation.
+If time is unavailable, Dragon Light stays dark. If a schedule refresh fails, it keeps the last valid cached copy. Weekends and explicit no-class dates are dark. A missing weekday entry shows a soft amber dash rather than guessing the rotation. If saved Wi-Fi cannot be reached, the device offers its setup portal before continuing offline.
 
 ## Public-repo security
 
-No Wi-Fi credentials, OTA password, or installation-specific schedule URL belong in this repository. They live in ignored `include/local_config.h`; the sample file contains placeholders only.
+Wi-Fi credentials are provisioned through the local captive portal and stored on the ESP8266, not in this repository. OTA/setup passwords and installation-specific schedule URLs live in ignored `include/local_config.h`; the sample file contains placeholders only.
 
 The public schedule fetch currently uses an insecure TLS client to avoid hard-coding Google's changing certificate chain. That is reasonable for a non-sensitive classroom status feed, but it does not authenticate the TLS peer; use CA validation if your deployment requires stronger guarantees.
 
@@ -164,6 +179,7 @@ Thanks to the open-source projects doing the heavy lifting:
 
 - [FastLED](https://github.com/FastLED/FastLED) — addressable LED output and color tools
 - [ESP8266 Arduino Core](https://github.com/esp8266/Arduino) — Wi-Fi, NTP, LittleFS, HTTPS, and OTA foundations
+- [WiFiManager](https://github.com/tzapu/WiFiManager) — captive-portal Wi-Fi provisioning
 - [PlatformIO](https://platformio.org/) — reproducible builds, dependencies, and uploads
 
 The 3D display/enclosure geometry used for this specific build came from a purchased [Cults3D model](https://cults3d.com/en/orders/164606964). The 3D model files are **not** redistributed by this repository and remain under their original license.
@@ -175,6 +191,7 @@ Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 - verify D1/GPIO5 is the actual physical data connection
 - verify the 27-index LED map with `scan`
 - confirm the 5V power supply rating
+- test captive-portal provisioning on the actual target Wi-Fi
 - add the public iCal/ICS rotation cross-check
 - tune brightness and animation intensity in the classroom
 
