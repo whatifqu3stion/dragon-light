@@ -124,7 +124,7 @@ void maybeRefreshSchedule(const tm& now) {
       millis() - lastScheduleAttemptMs < kRetryIntervalMs) return;
 
   lastScheduleAttemptMs = millis();
-  if (schedule.refreshFromNetwork()) lastRefreshDate = today;
+  if (schedule.refreshFromNetwork(today)) lastRefreshDate = today;
 }
 
 void serviceNetwork() {
@@ -210,9 +210,10 @@ void printStatus() {
   }
   const String today = isoDate(now);
   const char rotation = schedule.rotationForDate(today);
-  Serial.printf("[status] %s %02d:%02d:%02d | rotation=%c | wifi=%s | ota=%s\n",
+  Serial.printf("[status] %s %02d:%02d:%02d | rotation=%c source=%s | wifi=%s | ota=%s\n",
                 today.c_str(), now.tm_hour, now.tm_min, now.tm_sec,
                 rotation ? rotation : '?',
+                schedule.sourceForDate(today),
                 WiFi.status() == WL_CONNECTED ? "up" : "down",
                 otaReady ? "ready" : "off");
 }
@@ -244,7 +245,9 @@ void handleCommand(String command) {
   } else if (command == "sync") {
     if (WiFi.status() == WL_CONNECTED) {
       clockReady = syncClock();
-      schedule.refreshFromNetwork();
+      tm now{};
+      const String today = getDenverTime(now) ? isoDate(now) : String();
+      schedule.refreshFromNetwork(today);
     }
   } else if (command == "resetwifi") {
     resetWifi();
@@ -320,9 +323,10 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     clockReady = syncClock();
     lastScheduleAttemptMs = millis();
-    const bool refreshed = schedule.refreshFromNetwork();
     tm now{};
-    if (refreshed && getDenverTime(now)) lastRefreshDate = isoDate(now);
+    const String today = getDenverTime(now) ? isoDate(now) : String();
+    const bool refreshed = schedule.refreshFromNetwork(today);
+    if (refreshed && today.length() > 0) lastRefreshDate = today;
   }
 
   setupOta();

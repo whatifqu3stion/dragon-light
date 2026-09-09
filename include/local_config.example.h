@@ -11,3 +11,7 @@
 
 // Published CSV endpoint. A Google Sheet published with ?output=csv works well.
 #define DRAGON_LIGHT_SCHEDULE_URL "https://example.com/rotation.csv"
+
+// Public iCal/ICS feed for the school calendar. Use the calendar's public
+// iCal address, not its browser/embed page. Leave empty to use CSV only.
+#define DRAGON_LIGHT_CALENDAR_URL "https://example.com/school-calendar.ics"
