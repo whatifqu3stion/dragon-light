@@ -227,7 +227,7 @@ Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 
 - verify the 27-index LED map with `scan`
 - confirm the 5V power supply rating
-- validate the public iCal/ICS feed against real school-calendar events
+- confirm the validated iCal/ICS feed reports `source=calendar` on the ESP8266
 - tune brightness and animation intensity in the classroom
 
 For current design decisions, see [`docs/PROJECT_NOTES.md`](docs/PROJECT_NOTES.md).
