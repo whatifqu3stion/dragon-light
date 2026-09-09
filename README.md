@@ -139,6 +139,10 @@ Changing rows in the already-published sheet does **not** require a firmware upd
 5. Reboot or run `sync`. Use `status` to see `source=calendar`, `source=csv`,
    or `source=none` for today's resolved letter.
 
+Google may take tens of seconds to begin returning these public feeds. After
+running `sync`, wait until the calendar and schedule messages finish before
+running `status`.
+
 Changing events in either already-published source does not require another
 firmware upload.
 
