@@ -10,6 +10,9 @@
 
 namespace {
 
+constexpr uint16_t kGoogleHttpTimeoutMs = 45000;
+constexpr uint32_t kCalendarStallTimeoutMs = 45000UL;
+
 bool isRotationLetter(char value) {
   return strchr("BEDRAGON", value) != nullptr;
 }
@@ -151,6 +154,11 @@ bool ScheduleManager::refreshCsv() {
   client->setInsecure();
 
   HTTPClient http;
+  // Google can take well over the ESP8266HTTPClient default timeout to begin
+  // returning these public feeds. HTTP/1.0 also avoids keeping an unknown-size
+  // response open after its body has completed.
+  http.useHTTP10(true);
+  http.setTimeout(kGoogleHttpTimeoutMs);
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   if (!http.begin(*client, config::kScheduleUrl)) {
     Serial.println("[schedule] CSV HTTP begin failed");
@@ -169,7 +177,8 @@ bool ScheduleManager::refreshCsv() {
   fresh.trim();
 
   if (!looksLikeScheduleCsv(fresh)) {
-    Serial.println("[schedule] Response did not look like expected CSV");
+    Serial.printf("[schedule] Response did not look like expected CSV (%u bytes)\\n",
+                  fresh.length());
     return false;
   }
 
@@ -192,6 +201,8 @@ bool ScheduleManager::refreshCalendar(const String& isoDate) {
   client->setInsecure();
 
   HTTPClient http;
+  http.useHTTP10(true);
+  http.setTimeout(kGoogleHttpTimeoutMs);
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   if (!http.begin(*client, config::kCalendarUrl)) {
     Serial.println("[calendar] HTTP begin failed");
@@ -206,7 +217,7 @@ bool ScheduleManager::refreshCalendar(const String& isoDate) {
   }
 
   WiFiClient* stream = http.getStreamPtr();
-  stream->setTimeout(5000);
+  stream->setTimeout(kGoogleHttpTimeoutMs);
   int remaining = http.getSize();
   uint32_t lastDataAt = millis();
   String logicalLine;
@@ -223,7 +234,7 @@ bool ScheduleManager::refreshCalendar(const String& isoDate) {
          (remaining > 0 || remaining == -1)) {
     const size_t available = stream->available();
     if (available == 0) {
-      if (millis() - lastDataAt > 10000UL) {
+      if (millis() - lastDataAt > kCalendarStallTimeoutMs) {
         Serial.println("[calendar] Read timed out");
         http.end();
         return false;
