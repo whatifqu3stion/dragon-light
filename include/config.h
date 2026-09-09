@@ -13,6 +13,9 @@
 #ifndef DRAGON_LIGHT_SCHEDULE_URL
 #define DRAGON_LIGHT_SCHEDULE_URL ""
 #endif
+#ifndef DRAGON_LIGHT_CALENDAR_URL
+#define DRAGON_LIGHT_CALENDAR_URL ""
+#endif
 #ifndef DRAGON_LIGHT_SETUP_PASSWORD
 #define DRAGON_LIGHT_SETUP_PASSWORD ""
 #endif
@@ -21,6 +24,7 @@ namespace config {
 
 constexpr char kOtaPassword[] = DRAGON_LIGHT_OTA_PASSWORD;
 constexpr char kScheduleUrl[] = DRAGON_LIGHT_SCHEDULE_URL;
+constexpr char kCalendarUrl[] = DRAGON_LIGHT_CALENDAR_URL;
 constexpr char kSetupApPassword[] = DRAGON_LIGHT_SETUP_PASSWORD;
 
 // Confirmed hardware: NodeMCU v1.0 / ESP8266 driving a 5V WS2812B ECO strip.

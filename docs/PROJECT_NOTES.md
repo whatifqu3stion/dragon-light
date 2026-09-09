@@ -8,9 +8,8 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
 
 ## Agreed behavior
 
-- Rotation currently comes from a published CSV rather than blindly advancing weekdays.
-- A public school-calendar iCal/ICS feed is planned as the higher-priority live source once its feed URL is available.
-- Intended schedule precedence: valid exact calendar `Day X` event → CSV → cached CSV; if calendar and CSV disagree, calendar wins and the mismatch is logged.
+- Rotation comes from a public school-calendar iCal/ICS feed with a published CSV fallback rather than blindly advancing weekdays.
+- Schedule precedence: valid exact calendar `Day X` event → CSV → cached CSV; if calendar and CSV disagree, calendar wins and the mismatch is logged once.
 - Calendar matching must be exact: `Day B`, `Day E`, `Day D`, `Day R`, `Day A`, `Day G`, `Day O`, or `Day N`; unrelated calendar events are ignored.
 - Installation-specific schedule URLs stay in ignored `include/local_config.h` with OTA/setup passwords.
 - Wi-Fi SSID/password are not compiled into firmware. WiFiManager provisions them through `Dragon-Light-Setup` and stores them on the ESP8266.
@@ -71,8 +70,6 @@ The model files are not redistributed in this repository and remain subject to t
 
 ## Still to verify
 
-1. D1/GPIO5 is the physical data connection used in the final wiring.
-2. Powered 27-index physical LED-map verification using the `scan` command.
-3. Power supply current rating and practical brightness ceiling.
-4. Captive-portal provisioning against the actual installation Wi-Fi.
-5. Public iCal/ICS feed URL and calendar parser behavior on-device.
+1. Powered 27-index physical LED-map verification using the `scan` command.
+2. Power supply current rating and practical brightness ceiling.
+3. Public iCal/ICS feed URL and calendar parser behavior on-device.

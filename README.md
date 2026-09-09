@@ -4,7 +4,7 @@ Dragon Light is a NodeMCU ESP8266-powered, single-character 16-segment classroom
 
 Most of the day it quietly shows today's rotation letter in a day-specific color palette. It gets time over Wi-Fi, reads the rotation from a published schedule source, counts down class transitions, celebrates the end of the day, sleeps overnight, and supports OTA firmware updates for a display mounted out of reach.
 
-> **Status:** first hardware pass. The controller, LED strip, bell schedule, and woven LED route are identified; the data connection, powered LED-map verification, and power supply still need bench verification.
+> **Status:** first powered hardware pass. USB flashing, captive-portal Wi-Fi provisioning, D1/GPIO5 data, and basic LED rendering are verified. The full powered LED-map scan and power-supply rating still need verification.
 
 ## Hardware
 
@@ -26,7 +26,7 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 - brief highlight sweep every 10 minutes while the day letter remains readable
 - one-digit transition countdown with increasing pulse urgency
 - Denver/Mountain Time NTP clock with automatic DST handling
-- published-CSV schedule sync with a LittleFS cached fallback
+- public iCal/ICS live calendar with a LittleFS-cached CSV fallback
 - weekends / `NONE` / `NO CLASS` automatically off
 - 07:30 wake, 15:30 celebration, 15:45 sleep
 - captive-portal Wi-Fi setup with credentials stored on the device
@@ -49,9 +49,14 @@ time + rotation + transition state
 
 The unusual strip routing is isolated in `src/display.cpp`, so the font and effects do not care which segment uses one LED, two LEDs, or whether the strip passes through hidden pixels.
 
-## Schedule format
+## Schedule sources
 
-The currently implemented source is a published CSV. Any stable HTTPS endpoint returning this shape will work:
+Dragon Light checks two independent public sources. A valid calendar event is
+the live authority; the published CSV remains the durable fallback.
+
+### Published CSV fallback
+
+The fallback source is a published CSV. Any stable HTTPS endpoint returning this shape will work:
 
 ```csv
 date,weekday,rotation,special
@@ -62,30 +67,15 @@ date,weekday,rotation,special
 
 `rotation` may be `B`, `E`, `D`, `R`, `A`, `G`, `O`, `N`, `NONE`, or `NO CLASS`. The `special` column is currently ignored. A Google Sheet published with `?output=csv` is convenient.
 
-The device fetches at boot and once each school morning, then keeps the last good copy in LittleFS so a temporary Wi-Fi outage does not erase the calendar.
+The CSV parser locates columns by header name, so an extra exported `index`
+column is harmless. The device fetches at boot and once each school morning,
+then keeps the last good copy in LittleFS so a temporary Wi-Fi outage does not
+erase the schedule.
 
-## Updating schedule sources
+### Live school calendar
 
-Installation-specific source URLs belong in ignored `include/local_config.h`, **not** in this public repository.
-
-### Current source: published CSV
-
-1. Maintain the rotation in a Google Sheet or another source that can publish raw CSV over HTTPS.
-2. Keep one row per date. Use `NONE` or `NO CLASS` for dates when the display should stay dark.
-3. Publish/export the sheet as CSV.
-4. Set that URL in `include/local_config.h`:
-
-```cpp
-#define DRAGON_LIGHT_SCHEDULE_URL "https://example.com/rotation.csv"
-```
-
-5. Reboot the device or run `sync` over serial to force an immediate refresh. Otherwise it refreshes automatically each school morning.
-
-Changing rows in the already-published sheet does **not** require a firmware update; the device will see the new data on its next refresh.
-
-### Planned live source: school calendar
-
-The school calendar is likely to be the most current source when rotation changes occur after snow days or other calendar adjustments. The intended implementation is to use its public machine-readable iCal/ICS feed and accept only exact all-day event titles of the form:
+The calendar source must be a public machine-readable iCal/ICS feed. Dragon
+Light accepts only exact, all-day event titles:
 
 ```text
 Day B
@@ -98,22 +88,64 @@ Day O
 Day N
 ```
 
-Everything else on the calendar is ignored.
+Timed events, differently named events, and unrelated calendar entries are
+ignored. If conflicting Day events exist on one date, Dragon Light logs the
+conflict and safely falls back to CSV.
 
-Once implemented, schedule precedence will be:
+Schedule precedence is:
 
-1. valid calendar `Day X` event for today → use it
-2. otherwise use the CSV / cached CSV value
-3. if both sources contain letters but disagree → use the calendar value and log the mismatch
+1. valid exact calendar `Day X` event for today
+2. current or cached CSV value
+3. amber unknown dash when neither source has today
 
-The Google Calendar **embed URL is not the feed URL**. Use the calendar's public iCal/ICS address when adding this source. Calendar cross-checking is documented here for future setup but is **not yet implemented in firmware**.
+If the calendar and CSV contain different letters, the calendar wins and the
+mismatch is logged once.
 
-This keeps the CSV as a reliable fallback for missing calendar entries, network failures, or incomplete calendar history while allowing the official calendar to become the live authority.
+## Updating schedule sources
+
+Installation-specific source URLs belong in ignored `include/local_config.h`, **not** in this public repository.
+
+### Configure the published CSV
+
+1. Maintain the rotation in a Google Sheet or another source that can publish raw CSV over HTTPS.
+2. Keep one row per date. Use `NONE` or `NO CLASS` for dates when the display should stay dark.
+3. Publish/export the sheet as CSV.
+4. Set that URL in `include/local_config.h`:
+
+```cpp
+#define DRAGON_LIGHT_SCHEDULE_URL "https://example.com/rotation.csv"
+```
+
+For Google Sheets, the published URL should end like
+`/pub?gid=123456789&single=true&output=csv`. A `/pubhtml` link is the human
+viewing page and will not work as the firmware's CSV source.
+
+5. Reboot the device or run `sync` over serial to force an immediate refresh. Otherwise it refreshes automatically each school morning.
+
+Changing rows in the already-published sheet does **not** require a firmware update; the device will see the new data on its next refresh.
+
+### Configure the live calendar
+
+1. Make the relevant school calendar publicly readable.
+2. In Google Calendar, open **Settings and sharing → Integrate calendar**.
+3. Copy **Public address in iCal format**. Do not use the normal calendar page,
+   embed URL, or a private/secret feed in this public-device configuration.
+4. Set the address in `include/local_config.h`:
+
+```cpp
+#define DRAGON_LIGHT_CALENDAR_URL "https://example.com/school-calendar.ics"
+```
+
+5. Reboot or run `sync`. Use `status` to see `source=calendar`, `source=csv`,
+   or `source=none` for today's resolved letter.
+
+Changing events in either already-published source does not require another
+firmware upload.
 
 ## First setup
 
 1. Install [PlatformIO](https://platformio.org/) and open the project.
-2. Copy `include/local_config.example.h` to `include/local_config.h`. Set the OTA password, published CSV URL, and optionally a private password for the temporary setup access point. **Wi-Fi SSID/password do not go in this file.**
+2. Copy `include/local_config.example.h` to `include/local_config.h`. Set the OTA password, published CSV URL, public iCal/ICS URL, and optionally a private password for the temporary setup access point. **Wi-Fi SSID/password do not go in this file.**
 3. Wire the LED data input to NodeMCU **D1 / GPIO5** unless you intentionally change `kLedDataPin` in `include/config.h`.
 4. Flash once over USB:
 
@@ -165,11 +197,16 @@ The default mDNS hostname is `dragon-light.local`. Keep USB access available as 
 
 ## Failure behavior
 
-If time is unavailable, Dragon Light stays dark. If a schedule refresh fails, it keeps the last valid cached copy. Weekends and explicit no-class dates are dark. A missing weekday entry shows a soft amber dash rather than guessing the rotation. If saved Wi-Fi cannot be reached, the device offers its setup portal before continuing offline.
+If time is unavailable, Dragon Light stays dark. If the live calendar is absent,
+incomplete, conflicting, or temporarily unavailable, Dragon Light uses the
+current or cached CSV. Weekends and explicit CSV no-class dates are dark. A
+date missing from both sources shows a soft amber dash rather than guessing the
+rotation. If saved Wi-Fi cannot be reached, the device offers its setup portal
+before continuing offline.
 
 ## Public-repo security
 
-Wi-Fi credentials are provisioned through the local captive portal and stored on the ESP8266, not in this repository. OTA/setup passwords and installation-specific schedule URLs live in ignored `include/local_config.h`; the sample file contains placeholders only.
+Wi-Fi credentials are provisioned through the local captive portal and stored on the ESP8266, not in this repository. OTA/setup passwords and installation-specific CSV/calendar URLs live in ignored `include/local_config.h`; the sample file contains placeholders only.
 
 The public schedule fetch currently uses an insecure TLS client to avoid hard-coding Google's changing certificate chain. That is reasonable for a non-sensitive classroom status feed, but it does not authenticate the TLS peer; use CA validation if your deployment requires stronger guarantees.
 
@@ -188,11 +225,9 @@ Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 
 ## Next steps
 
-- verify D1/GPIO5 is the actual physical data connection
 - verify the 27-index LED map with `scan`
 - confirm the 5V power supply rating
-- test captive-portal provisioning on the actual target Wi-Fi
-- add the public iCal/ICS rotation cross-check
+- validate the public iCal/ICS feed against real school-calendar events
 - tune brightness and animation intensity in the classroom
 
 For current design decisions, see [`docs/PROJECT_NOTES.md`](docs/PROJECT_NOTES.md).
