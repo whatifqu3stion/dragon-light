@@ -72,4 +72,4 @@ The model files are not redistributed in this repository and remain subject to t
 
 1. Powered 27-index physical LED-map verification using the `scan` command.
 2. Power supply current rating and practical brightness ceiling.
-3. Public iCal/ICS feed URL and calendar parser behavior on-device.
+3. End-to-end on-device sync using the validated public iCal/ICS feed.
