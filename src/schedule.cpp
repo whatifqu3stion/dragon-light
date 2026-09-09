@@ -177,7 +177,7 @@ bool ScheduleManager::refreshCsv() {
   fresh.trim();
 
   if (!looksLikeScheduleCsv(fresh)) {
-    Serial.printf("[schedule] Response did not look like expected CSV (%u bytes)\\n",
+    Serial.printf("[schedule] Response did not look like expected CSV (%u bytes)\n",
                   fresh.length());
     return false;
   }
