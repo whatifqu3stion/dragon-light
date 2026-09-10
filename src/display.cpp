@@ -150,11 +150,4 @@ GlyphMask glyphForChar(char c) {
   }
 }
 
-GlyphMask smileGlyph() {
-  // Slanted eyes plus a U-shaped mouth, constrained by the segment geometry.
-  return S(Segment::UpperLeftDiag) | S(Segment::UpperRightDiag) |
-         S(Segment::LowerLeftV) | S(Segment::LowerRightV) |
-         S(Segment::BottomLeftH) | S(Segment::BottomRightH);
-}
-
 GlyphMask dashGlyph() { return glyphForChar('-'); }
