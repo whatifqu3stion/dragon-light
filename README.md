@@ -225,6 +225,16 @@ Thanks to the open-source projects doing the heavy lifting:
 
 The 3D display/enclosure geometry used for this specific build came from a purchased [Cults3D model](https://cults3d.com/en/orders/164606964). The 3D model files are **not** redistributed by this repository and remain under their original license.
 
+### STL printing note
+
+In the purchased STL set, the part labeled **diffuser** functions more accurately
+as an internal light baffle. Print this part in an opaque material—preferably a
+dark color—to limit light bleed between neighboring segments.
+
+The STL set does not include a front diffuser. Add a thin, simple rectangular
+front layer printed in translucent filament, or cut/source a comparable
+frosted or translucent sheet material.
+
 Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 
 ## Next steps
