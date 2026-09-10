@@ -45,5 +45,4 @@ class SegmentDisplay {
 };
 
 GlyphMask glyphForChar(char c);
-GlyphMask smileGlyph();
 GlyphMask dashGlyph();
