@@ -72,7 +72,8 @@ struct TransitionWindow {
 };
 
 // Final five minutes before each class/advisory starts. During these windows the
-// day letter temporarily becomes a 5→1 countdown with increasing pulse urgency.
+// day letter becomes a 5→2 countdown, then a clockwise clock-hand spinner for
+// the final minute.
 // Break/lunch themselves stay in normal day-letter mode until their final five
 // minutes before the next class.
 constexpr std::array<TransitionWindow, 6> kTransitions = {{
