@@ -228,8 +228,8 @@ The 3D display/enclosure geometry used for this specific build came from a purch
 ### STL printing note
 
 In the purchased STL set, the part labeled **diffuser** functions more accurately
-as an internal light baffle. Print this part in an opaque material—preferably a
-dark color—to limit light bleed between neighboring segments.
+as an internal light baffle. Print this part in an opaque material to limit
+light bleed between neighboring segments.
 
 The STL set does not include a front diffuser. Add a thin, simple rectangular
 front layer printed in translucent filament, or cut/source a comparable
