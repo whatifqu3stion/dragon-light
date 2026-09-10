@@ -21,10 +21,11 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 
 ## Features
 
-- `B E D R A G O N` glyphs, digits, and a segmented smile
+- `B E D R A G O N` glyphs, digits, and abstract full-display animations
 - distinct day palettes with slow gradient drift and gentle breathing
 - brief highlight sweep every 10 minutes while the day letter remains readable
-- one-digit transition countdown with increasing pulse urgency
+- 5→2 transition countdown with increasing pulse urgency, followed by a
+  clockwise clock-hand spinner for the final minute
 - Denver/Mountain Time NTP clock with automatic DST handling
 - public iCal/ICS live calendar with a LittleFS-cached CSV fallback
 - weekends / `NONE` / `NO CLASS` automatically off
@@ -174,7 +175,9 @@ auto       normal scheduled behavior
 scan       cycle through every physical LED
 led 7      light one physical LED
 glyph B    show a glyph
-smile      show the segmented smile
+spin       preview the final-minute spinner in today's color
+spin O     preview the spinner in a chosen rotation color
+celebrate  preview the end-of-day animation cycle
 off        force LEDs off
 sync       refresh time + schedule now
 resetwifi  erase saved Wi-Fi and restart setup

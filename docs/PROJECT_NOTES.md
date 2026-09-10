@@ -18,12 +18,14 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
 - `*` markers in the CSV source are ignored for now.
 - Denver local time comes from NTP with automatic MST/MDT handling.
 - 07:30: wake and show the day letter.
-- 15:30-15:45: smile / end-of-day animation.
+- 15:30-15:45: cycle through kaleidoscope bloom, firework burst, and aurora
+  swirl animations.
 - 15:45-07:30: LEDs off.
 - Weekends and `NONE` / `NO CLASS`: off.
 - Normal letter: slow palette drift + gentle breathing.
 - Every 10 minutes: one brief highlight sweep while the letter remains readable.
-- Final five minutes before each class/advisory: one-digit countdown; pulse frequency increases toward start time.
+- Final five minutes before each class/advisory: show a pulsing 5→2 countdown,
+  then replace `1` with a fast clockwise clock-hand spinner for the final minute.
 - OTA updates are required because the finished unit may be mounted out of reach.
 
 ## School-day schedule

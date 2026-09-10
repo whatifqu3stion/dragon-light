@@ -12,6 +12,132 @@ uint8_t gradientPhase(uint32_t nowMs, uint32_t periodMs = 36000) {
   return static_cast<uint8_t>((nowMs * 256ULL) / periodMs);
 }
 
+constexpr Segment kClockSpokes[] = {
+    Segment::UpperCenterV,  Segment::UpperRightDiag,
+    Segment::MiddleRightH, Segment::LowerRightDiag,
+    Segment::LowerCenterV, Segment::LowerLeftDiag,
+    Segment::MiddleLeftH,  Segment::UpperLeftDiag,
+};
+
+constexpr Segment kOuterSegments[] = {
+    Segment::TopLeftH,     Segment::TopRightH,
+    Segment::UpperRightV,  Segment::LowerRightV,
+    Segment::BottomRightH, Segment::BottomLeftH,
+    Segment::LowerLeftV,   Segment::UpperLeftV,
+};
+
+constexpr uint8_t kBloomRing[] = {
+    3, 3, 1, 1, 3, 3, 2, 2, 2, 2, 0, 0, 1, 1, 1, 1,
+};
+
+constexpr uint8_t kSymmetryGroup[] = {
+    0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7,
+};
+
+static_assert(sizeof(kClockSpokes) / sizeof(kClockSpokes[0]) == 8,
+              "Clock spinner must have eight directions");
+static_assert(sizeof(kBloomRing) == static_cast<uint8_t>(Segment::Count),
+              "Bloom map must cover every segment");
+static_assert(sizeof(kSymmetryGroup) == static_cast<uint8_t>(Segment::Count),
+              "Celebration color map must cover every segment");
+
+constexpr uint32_t kCelebrationSceneMs = 12000UL;
+
+uint8_t sceneEnvelope(uint32_t sceneMs) {
+  constexpr uint16_t kFadeMs = 500;
+  if (sceneMs < kFadeMs) {
+    return static_cast<uint8_t>((sceneMs * 255UL) / kFadeMs);
+  }
+  if (sceneMs > kCelebrationSceneMs - kFadeMs) {
+    return static_cast<uint8_t>(
+        ((kCelebrationSceneMs - sceneMs) * 255UL) / kFadeMs);
+  }
+  return 255;
+}
+
+void renderKaleidoscopeBloom(SegmentDisplay& display, uint32_t sceneMs,
+                             uint32_t nowMs) {
+  const uint32_t half = kCelebrationSceneMs / 2;
+  const uint8_t progress = sceneMs <= half
+                               ? static_cast<uint8_t>((sceneMs * 255UL) / half)
+                               : static_cast<uint8_t>(
+                                     ((kCelebrationSceneMs - sceneMs) * 255UL) /
+                                     half);
+  const uint8_t envelope = sceneEnvelope(sceneMs);
+  const uint8_t baseHue = static_cast<uint8_t>(nowMs / 55);
+
+  display.clear(false);
+  for (uint8_t i = 0; i < static_cast<uint8_t>(Segment::Count); ++i) {
+    const uint8_t threshold = kBloomRing[i] * 50;
+    uint8_t brightness = 0;
+    if (progress > threshold) {
+      const uint16_t opened = static_cast<uint16_t>(progress - threshold) * 3;
+      brightness = static_cast<uint8_t>(opened > 255 ? 255 : opened);
+    }
+    brightness = scale8(brightness, envelope);
+    display.setSegment(static_cast<Segment>(i),
+                       CHSV(baseHue + kSymmetryGroup[i] * 24, 190,
+                            brightness));
+  }
+  display.show();
+}
+
+void renderFireworkBurst(SegmentDisplay& display, uint32_t sceneMs) {
+  constexpr uint16_t kBurstMs = 3000;
+  const uint16_t burstMs = static_cast<uint16_t>(sceneMs % kBurstMs);
+  const uint8_t burstIndex = static_cast<uint8_t>(sceneMs / kBurstMs);
+  const uint8_t hue = static_cast<uint8_t>(burstIndex * 61 + sceneMs / 35);
+  const uint8_t envelope = sceneEnvelope(sceneMs);
+
+  uint8_t spokeBrightness = 0;
+  if (burstMs < 600) {
+    spokeBrightness = static_cast<uint8_t>((burstMs * 255UL) / 600UL);
+  } else if (burstMs < 1400) {
+    spokeBrightness = static_cast<uint8_t>(
+        ((1400UL - burstMs) * 255UL) / 800UL);
+  }
+  spokeBrightness = scale8(spokeBrightness, envelope);
+
+  uint8_t sparkFade = 0;
+  if (burstMs >= 500 && burstMs < 2600) {
+    sparkFade = static_cast<uint8_t>(
+        ((2600UL - burstMs) * 255UL) / 2100UL);
+  }
+  sparkFade = scale8(sparkFade, envelope);
+
+  display.clear(false);
+  for (uint8_t i = 0; i < sizeof(kClockSpokes) / sizeof(kClockSpokes[0]); ++i) {
+    display.setSegment(kClockSpokes[i],
+                       CHSV(hue + i * 18, 165, spokeBrightness));
+  }
+  for (uint8_t i = 0;
+       i < sizeof(kOuterSegments) / sizeof(kOuterSegments[0]); ++i) {
+    const uint8_t sparkle = sin8(static_cast<uint8_t>(
+        i * 47 + burstIndex * 73 + burstMs / 5));
+    const uint8_t brightness = scale8(sparkFade, 110 + scale8(sparkle, 145));
+    display.setSegment(kOuterSegments[i],
+                       CHSV(hue + i * 27, 130, brightness));
+  }
+  display.show();
+}
+
+void renderAuroraSwirl(SegmentDisplay& display, uint32_t sceneMs,
+                       uint32_t nowMs) {
+  const uint8_t envelope = sceneEnvelope(sceneMs);
+  const uint8_t drift = static_cast<uint8_t>(nowMs / 28);
+
+  display.clear(false);
+  for (uint8_t i = 0; i < static_cast<uint8_t>(Segment::Count); ++i) {
+    const uint8_t wave = sin8(static_cast<uint8_t>(drift + i * 29));
+    const uint8_t brightness =
+        scale8(static_cast<uint8_t>(150 + scale8(wave, 105)), envelope);
+    display.setSegment(static_cast<Segment>(i),
+                       CHSV(drift + i * 14 + scale8(wave, 24), 175,
+                            brightness));
+  }
+  display.show();
+}
+
 }  // namespace
 
 DayPalette paletteForRotation(char rotation) {
@@ -34,8 +160,39 @@ void renderDayLetter(SegmentDisplay& display, char rotation, uint32_t nowMs) {
                       slowBreath(nowMs), gradientPhase(nowMs));
 }
 
+void renderFinalMinuteSpinner(SegmentDisplay& display, char rotation,
+                              uint32_t nowMs) {
+  constexpr uint16_t kStepMs = 150;
+  constexpr uint8_t kSpokeCount = sizeof(kClockSpokes) / sizeof(kClockSpokes[0]);
+
+  const auto palette = paletteForRotation(rotation);
+  const uint32_t step = nowMs / kStepMs;
+  const uint8_t current = static_cast<uint8_t>(step % kSpokeCount);
+  const uint8_t next = static_cast<uint8_t>((current + 1) % kSpokeCount);
+  const uint8_t progress =
+      static_cast<uint8_t>(((nowMs % kStepMs) * 255UL) / kStepMs);
+
+  // Cross-fade neighboring center spokes to suggest a smoothly rotating clock
+  // hand rather than a sequence of disconnected flashes.
+  const CRGB base = blend(palette.light, palette.accent, 180);
+  CRGB currentColor = base;
+  CRGB nextColor = base;
+  currentColor.nscale8_video(255 - progress);
+  nextColor.nscale8_video(progress);
+
+  display.clear(false);
+  display.setSegment(kClockSpokes[current], currentColor);
+  display.setSegment(kClockSpokes[next], nextColor);
+  display.show();
+}
+
 void renderCountdown(SegmentDisplay& display, char rotation, uint8_t minutesLeft,
                      uint32_t secondsLeft, uint32_t nowMs) {
+  if (secondsLeft <= 60UL) {
+    renderFinalMinuteSpinner(display, rotation, nowMs);
+    return;
+  }
+
   const auto palette = paletteForRotation(rotation);
   minutesLeft = constrain(minutesLeft, 1, 9);
 
@@ -52,12 +209,17 @@ void renderCountdown(SegmentDisplay& display, char rotation, uint8_t minutesLeft
                       pulse, gradientPhase(nowMs, 5500));
 }
 
-void renderSmile(SegmentDisplay& display, uint32_t nowMs) {
-  const uint8_t hue = static_cast<uint8_t>((nowMs / 45) & 0xFF);
-  display.renderGlyph(smileGlyph(), CHSV(hue, 180, 255),
-                      CHSV(hue + 55, 150, 255),
-                      slowBreath(nowMs, 190, 255, 5000),
-                      gradientPhase(nowMs, 3500));
+void renderCelebration(SegmentDisplay& display, uint32_t nowMs) {
+  const uint8_t scene =
+      static_cast<uint8_t>((nowMs / kCelebrationSceneMs) % 3);
+  const uint32_t sceneMs = nowMs % kCelebrationSceneMs;
+  if (scene == 0) {
+    renderKaleidoscopeBloom(display, sceneMs, nowMs);
+  } else if (scene == 1) {
+    renderFireworkBurst(display, sceneMs);
+  } else {
+    renderAuroraSwirl(display, sceneMs, nowMs);
+  }
 }
 
 void renderFunSweep(SegmentDisplay& display, char rotation, uint32_t nowMs,

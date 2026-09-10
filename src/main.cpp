@@ -14,7 +14,15 @@ namespace {
 SegmentDisplay display;
 ScheduleManager schedule;
 
-enum class ManualMode { Auto, LedScan, SingleLed, Glyph, Smile, Off };
+enum class ManualMode {
+  Auto,
+  LedScan,
+  SingleLed,
+  Glyph,
+  Spinner,
+  Celebration,
+  Off
+};
 ManualMode mode = ManualMode::Auto;
 uint16_t manualLed = 0;
 char manualGlyph = 'B';
@@ -166,7 +174,7 @@ void renderAuto(uint32_t nowMs) {
 
   if (isAtOrAfter(nowMinutes, config::kCelebrationHour,
                   config::kCelebrationMinute)) {
-    renderSmile(display, nowMs);
+    renderCelebration(display, nowMs);
     return;
   }
 
@@ -219,7 +227,7 @@ void printStatus() {
 }
 
 void printHelp() {
-  Serial.println("Commands: auto | scan | led N | glyph X | smile | off | sync | resetwifi | status | help");
+  Serial.println("Commands: auto | scan | led N | glyph X | spin [X] | celebrate | off | sync | resetwifi | status | help");
 }
 
 void handleCommand(String command) {
@@ -237,8 +245,21 @@ void handleCommand(String command) {
   } else if (command.startsWith("glyph ") && command.length() >= 7) {
     manualGlyph = command.charAt(6);
     mode = ManualMode::Glyph;
-  } else if (command == "smile") {
-    mode = ManualMode::Smile;
+  } else if (command == "spin" || command.startsWith("spin ")) {
+    if (command.length() >= 6) {
+      manualGlyph = command.charAt(5);
+    } else {
+      tm now{};
+      if (getDenverTime(now)) {
+        const char todayRotation = schedule.rotationForDate(isoDate(now));
+        if (todayRotation != '\0' && todayRotation != '-') {
+          manualGlyph = todayRotation;
+        }
+      }
+    }
+    mode = ManualMode::Spinner;
+  } else if (command == "celebrate" || command == "smile") {
+    mode = ManualMode::Celebration;
   } else if (command == "off") {
     mode = ManualMode::Off;
     display.clear(true);
@@ -298,8 +319,11 @@ void renderManual(uint32_t nowMs) {
                           230, static_cast<uint8_t>(nowMs / 30));
       break;
     }
-    case ManualMode::Smile:
-      renderSmile(display, nowMs);
+    case ManualMode::Spinner:
+      renderFinalMinuteSpinner(display, manualGlyph, nowMs);
+      break;
+    case ManualMode::Celebration:
+      renderCelebration(display, nowMs);
       break;
     case ManualMode::Off:
       break;
