@@ -32,6 +32,7 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 - 07:30 wake, 15:30 celebration, 15:45 sleep
 - captive-portal Wi-Fi setup with credentials stored on the device
 - password-protected Arduino OTA updates
+- password-protected local web controls with persistent brightness
 - serial diagnostics including LED-by-LED mapping and Wi-Fi reset
 
 ## Architecture
@@ -172,18 +173,43 @@ Useful serial commands:
 
 ```text
 auto       normal scheduled behavior
+off        force LEDs off
+brightness 48  set and save brightness (5-128)
 scan       cycle through every physical LED
-led 7      light one physical LED
-glyph B    show a glyph
+led 7      light one physical LED (0-26)
+glyph B    show B/E/D/R/A/G/O/N, 0-9, or -
 spin       preview the final-minute spinner in today's color
 spin O     preview the spinner in a chosen rotation color
 celebrate  preview the end-of-day animation cycle
-off        force LEDs off
 sync       refresh time + schedule now
 resetwifi  erase saved Wi-Fi and restart setup
-status     print current state
+status     print time, rotation, source, brightness, mode, and network state
 help       list commands
 ```
+
+`scan`, `led`, and `glyph` are hardware diagnostics. `spin` and `celebrate`
+are animation previews. `sync` is intentionally serial-only and can take up to
+about 90 seconds when a public Google feed is slow; wait for its calendar and
+schedule messages to finish before entering another command.
+
+## Wireless controls
+
+Once Dragon Light is connected to Wi-Fi, open
+[`http://dragon-light.local`](http://dragon-light.local) from a phone or
+computer on the same local network. The page provides:
+
+- a `5–128` brightness slider; the saved value survives restarts
+- **Auto**, **Off**, **Spin preview**, and **Celebrate** controls
+- current mode, rotation, schedule source, clock, and device IP
+
+The firmware now defaults to brightness `64`; `128` remains the enforced upper
+limit. If an OTA password is configured, sign in with username `dragon` and
+that same password. If `.local` names are unavailable on the network, use the
+ESP8266's IP address shown by `status` or the router's connected-device list.
+
+This control page is local HTTP, not encrypted HTTPS. Do not forward its port
+to the internet. Wi-Fi reset and schedule sync remain serial-only recovery and
+diagnostic operations.
 
 ## Changing Wi-Fi later
 
@@ -196,11 +222,15 @@ If the old network simply becomes unavailable, a reboot also triggers the setup 
 After the first USB flash and a successful Wi-Fi connection, subsequent builds can be sent wirelessly. OTA is only enabled when a non-empty password is configured.
 
 ```bash
+# Run these in VS Code's PlatformIO terminal from the dragon-light folder.
 export DRAGON_LIGHT_OTA_PASSWORD='your-password'
 pio run -e ota -t upload
 ```
 
-The default mDNS hostname is `dragon-light.local`. Keep USB access available as a recovery path.
+The `export` applies to the current terminal session only, so run it again after
+opening a new terminal. A successful upload restarts the ESP8266 automatically;
+its saved Wi-Fi, schedule cache, and brightness remain intact. The default mDNS
+hostname is `dragon-light.local`. Keep USB access available as a recovery path.
 
 ## Failure behavior
 
@@ -245,6 +275,6 @@ Dragon Light's own code is MIT licensed; see [`LICENSE`](LICENSE).
 - verify the 27-index LED map with `scan`
 - confirm the 5V power supply rating
 - confirm the validated iCal/ICS feed reports `source=calendar` on the ESP8266
-- tune brightness and animation intensity in the classroom
+- tune the saved brightness from the local web page in the classroom
 
 For current design decisions, see [`docs/PROJECT_NOTES.md`](docs/PROJECT_NOTES.md).

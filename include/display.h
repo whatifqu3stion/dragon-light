@@ -38,10 +38,13 @@ class SegmentDisplay {
                    uint8_t intensity, uint8_t gradientPhase);
   void setSegment(Segment segment, const CRGB& color);
   void showSingleLed(uint16_t index, const CRGB& color);
+  void setBrightness(uint8_t brightness);
+  uint8_t brightness() const;
   uint16_t ledCount() const;
 
  private:
   CRGB leds_[27]{};
+  uint8_t brightness_ = 0;
 };
 
 GlyphMask glyphForChar(char c);
