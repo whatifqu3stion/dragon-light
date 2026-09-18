@@ -156,10 +156,10 @@ DayPalette paletteForRotation(char rotation) {
 
 void renderDayLetter(SegmentDisplay& display, char rotation, uint32_t nowMs) {
   const auto palette = paletteForRotation(rotation);
-  // Keep the letter at a steady intensity for maximum readability. The full
-  // dark-to-accent range makes the slow color drift visible without dimming
-  // the entire glyph in and out.
-  display.renderGlyph(glyphForChar(rotation), palette.dark, palette.accent,
+  // Keep the letter at a steady intensity for maximum readability. A bright
+  // light-to-accent range makes the color drift visible without allowing any
+  // part of the glyph to become muddy or difficult to read.
+  display.renderGlyph(glyphForChar(rotation), palette.light, palette.accent,
                       255, gradientPhase(nowMs));
 }
 
