@@ -59,7 +59,7 @@ constexpr GlyphMask kOuterVerticals =
 void SegmentDisplay::begin() {
   // Confirmed strip type: 5V WS2812B ECO, normal GRB channel order.
   FastLED.addLeds<WS2812B, config::kLedDataPin, GRB>(leds_, config::kLedCount);
-  FastLED.setBrightness(config::kMaxBrightness);
+  setBrightness(config::kDefaultBrightness);
   clear(true);
 }
 
@@ -103,6 +103,14 @@ void SegmentDisplay::showSingleLed(uint16_t index, const CRGB& color) {
   if (index < config::kLedCount) leds_[index] = color;
   show();
 }
+
+void SegmentDisplay::setBrightness(uint8_t brightness) {
+  brightness_ = brightness;
+  FastLED.setBrightness(brightness_);
+  show();
+}
+
+uint8_t SegmentDisplay::brightness() const { return brightness_; }
 
 uint16_t SegmentDisplay::ledCount() const { return config::kLedCount; }
 

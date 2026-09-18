@@ -32,10 +32,13 @@ constexpr char kSetupApPassword[] = DRAGON_LIGHT_SETUP_PASSWORD;
 // physical wire is actually connected here before installation.
 constexpr uint8_t kLedDataPin = D1;
 constexpr uint16_t kLedCount = 27;
+constexpr uint8_t kDefaultBrightness = 64;
+constexpr uint8_t kMinBrightness = 5;
 constexpr uint8_t kMaxBrightness = 128;
 constexpr char kHostname[] = "dragon-light";
 constexpr char kSetupApName[] = "Dragon-Light-Setup";
 constexpr char kScheduleCachePath[] = "/schedule.csv";
+constexpr char kBrightnessPath[] = "/brightness.txt";
 
 // Wi-Fi credentials are provisioned through the captive portal and saved by the
 // ESP8266. The portal only appears when the saved network cannot be reached.
