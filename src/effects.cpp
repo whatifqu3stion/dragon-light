@@ -156,8 +156,11 @@ DayPalette paletteForRotation(char rotation) {
 
 void renderDayLetter(SegmentDisplay& display, char rotation, uint32_t nowMs) {
   const auto palette = paletteForRotation(rotation);
-  display.renderGlyph(glyphForChar(rotation), palette.dark, palette.light,
-                      slowBreath(nowMs), gradientPhase(nowMs));
+  // Keep the letter at a steady intensity for maximum readability. The full
+  // dark-to-accent range makes the slow color drift visible without dimming
+  // the entire glyph in and out.
+  display.renderGlyph(glyphForChar(rotation), palette.dark, palette.accent,
+                      255, gradientPhase(nowMs));
 }
 
 void renderFinalMinuteSpinner(SegmentDisplay& display, char rotation,

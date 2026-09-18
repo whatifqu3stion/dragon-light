@@ -22,8 +22,8 @@ See [`docs/HARDWARE.md`](docs/HARDWARE.md) and [`docs/LED_MAPPING.md`](docs/LED_
 ## Features
 
 - `B E D R A G O N` glyphs, digits, and abstract full-display animations
-- distinct day palettes with slow gradient drift and gentle breathing
-- brief highlight sweep every 10 minutes while the day letter remains readable
+- distinct day palettes with steady brightness and stronger gradient drift
+- brief highlight sweep every minute while the day letter remains readable
 - 5→2 transition countdown with increasing pulse urgency, followed by a
   clockwise clock-hand spinner for the final minute
 - Denver/Mountain Time NTP clock with automatic DST handling

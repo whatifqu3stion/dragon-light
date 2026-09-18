@@ -62,10 +62,10 @@ constexpr uint8_t kSleepMinute = 45;
 
 constexpr uint32_t kTimeSyncTimeoutMs = 12000;
 
-// Brief highlight sweep every 10 minutes. The day letter remains visible.
+// Brief highlight sweep every minute. The day letter remains visible.
 constexpr uint32_t kFunAnimationDurationMs = 2400;
-constexpr uint32_t kFunAnimationMinIntervalMs = 10UL * 60UL * 1000UL;
-constexpr uint32_t kFunAnimationMaxIntervalMs = 10UL * 60UL * 1000UL;
+constexpr uint32_t kFunAnimationMinIntervalMs = 60UL * 1000UL;
+constexpr uint32_t kFunAnimationMaxIntervalMs = 60UL * 1000UL;
 
 struct TransitionWindow {
   uint8_t startHour;

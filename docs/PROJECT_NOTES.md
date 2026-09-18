@@ -22,8 +22,8 @@ Dragon Light is a calm classroom status object built around one physical 16-segm
   swirl animations.
 - 15:45-07:30: LEDs off.
 - Weekends and `NONE` / `NO CLASS`: off.
-- Normal letter: slow palette drift + gentle breathing.
-- Every 10 minutes: one brief highlight sweep while the letter remains readable.
+- Normal letter: steady brightness + stronger dark-to-accent palette drift.
+- Every minute: one brief highlight sweep while the letter remains readable.
 - Final five minutes before each class/advisory: show a pulsing 5→2 countdown,
   then replace `1` with a fast clockwise clock-hand spinner for the final minute.
 - OTA updates are required because the finished unit may be mounted out of reach.
