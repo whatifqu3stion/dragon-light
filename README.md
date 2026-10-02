@@ -6,6 +6,14 @@ My school uses an eight-day schedule spelled **B E D R A G O N**. Dragon Light t
 
 This project combines classroom experience, physical making, and embedded software. The design aim is a useful object that can sit quietly in a room, rather than another screen competing for attention.
 
+## Preview
+
+![Dragon Light local firmware controls for brightness and display modes with clearly labeled example status](docs/previews/local-controls.jpg)
+
+The firmware's local control page, rendered with example device status. This shows brightness and animation controls; a photograph of the physical classroom display would complement it.
+
+[Capture notes](docs/previews/README.md) record the source revision and demo conditions.
+
 ## Where it stands
 
 **Working hardware prototype.** The project notes record successful USB flashing, Wi-Fi provisioning, and basic LED rendering. The full physical LED-map scan, power-supply rating, and on-device calendar sync still need confirmation. Those checks remain open; firmware features alone are not evidence of a finished installation.
