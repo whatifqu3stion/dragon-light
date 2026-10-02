@@ -8,11 +8,19 @@ This project combines classroom experience, physical making, and embedded softwa
 
 ## Preview
 
-![Dragon Light local firmware controls for brightness and display modes with clearly labeled example status](docs/previews/local-controls.jpg)
+![Dragon Light local firmware controls with a selected display mode and example device status](docs/previews/local-controls.jpg)
 
-The firmware's local control page, rendered with example device status. This shows brightness and animation controls; a photograph of the physical classroom display would complement it.
+The firmware's local control page, rendered with example device status. Brightness and display modes share one responsive panel, with a visible selected mode and connection feedback. The page runs directly from the device without external fonts, scripts, or services. A photograph of the physical classroom display would complement it.
 
 [Capture notes](docs/previews/README.md) record the source revision and demo conditions.
+
+To explore the interface without the display, run:
+
+```bash
+python3 tools/preview_ui.py
+```
+
+Open `http://127.0.0.1:8040`. This local preview serves the exact embedded page with example status and simulated controls. Changes last only for the preview session; no hardware or calendar is connected.
 
 ## Where it stands
 
