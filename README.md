@@ -12,6 +12,14 @@ This project combines classroom experience, physical making, and embedded softwa
 
 The firmware's local control page, rendered with example device status. Brightness and display modes share one responsive panel, with a visible selected mode and connection feedback. The page runs directly from the device without external fonts, scripts, or services. A photograph of the physical classroom display would complement it.
 
+<details>
+<summary>Mobile control interface</summary>
+
+<p>The same controls at phone width, rendered with example device status.</p>
+<img src="docs/previews/mobile-controls.jpg" alt="Dragon Light mobile controls with brightness, four display modes, and device status" width="390">
+
+</details>
+
 [Capture notes](docs/previews/README.md) record the source revision and demo conditions.
 
 To explore the interface without the display, run:
