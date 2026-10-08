@@ -177,7 +177,7 @@ void setupControlAp() {
   }
 
   controlApReady = true;
-  Serial.printf("[control-ap] %s ready at http://%s\\n",
+  Serial.printf("[control-ap] %s ready at http://%s\n",
                 config::kControlApName,
                 WiFi.softAPIP().toString().c_str());
 }
