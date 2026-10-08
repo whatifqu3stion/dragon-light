@@ -38,6 +38,7 @@ uint16_t lastScannedLed = 0xFFFF;
 bool clockReady = false;
 bool otaReady = false;
 bool webReady = false;
+bool controlApReady = false;
 String lastRefreshDate;
 uint32_t lastScheduleAttemptMs = 0;
 uint32_t lastClockAttemptMs = 0;
@@ -159,6 +160,28 @@ void connectWifi() {
   }
 }
 
+// The control AP is independent of the school's client-isolated Wi-Fi.
+// It shares the configured setup AP password, avoiding another secret.
+// Starting after WiFiManager finishes prevents interference with provisioning.
+void setupControlAp() {
+  const size_t passwordLength = strlen(config::kSetupApPassword);
+  if (passwordLength < 8 || passwordLength > 63) {
+    Serial.println("[control-ap] Disabled: setup password must be 8-63 characters");
+    return;
+  }
+
+  WiFi.mode(WIFI_AP_STA);
+  if (!WiFi.softAP(config::kControlApName, config::kSetupApPassword)) {
+    Serial.println("[control-ap] Failed to start");
+    return;
+  }
+
+  controlApReady = true;
+  Serial.printf("[control-ap] %s ready at http://%s\n",
+                config::kControlApName,
+                WiFi.softAPIP().toString().c_str());
+}
+
 void resetWifi() {
   WiFiManager manager;
   manager.resetSettings();
@@ -234,7 +257,7 @@ void sendStatusJson() {
 }
 
 void setupWebControl() {
-  if (webReady || WiFi.status() != WL_CONNECTED) return;
+  if (webReady || (WiFi.status() != WL_CONNECTED && !controlApReady)) return;
 
   webServer.on("/", HTTP_GET, []() {
     if (!authorizeWebRequest()) return;
@@ -290,8 +313,10 @@ void setupWebControl() {
   });
   webServer.begin();
 
-  if (!otaReady) MDNS.begin(config::kHostname);
-  MDNS.addService("http", "tcp", 80);
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!otaReady) MDNS.begin(config::kHostname);
+    MDNS.addService("http", "tcp", 80);
+  }
   webReady = true;
   Serial.printf("[web] Ready at http://%s.local\n", config::kHostname);
 }
@@ -585,6 +610,7 @@ void setup() {
     if (refreshed && today.length() > 0) lastRefreshDate = today;
   }
 
+  setupControlAp();
   setupOta();
   setupWebControl();
   scheduleNextFun(millis());
@@ -596,7 +622,7 @@ void loop() {
   if (otaReady) ArduinoOTA.handle();
   if (webReady) {
     webServer.handleClient();
-    MDNS.update();
+    if (WiFi.status() == WL_CONNECTED) MDNS.update();
   }
   handleSerial();
   renderManual(millis());
