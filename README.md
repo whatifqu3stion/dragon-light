@@ -53,9 +53,22 @@ python3 tools/preview_ui.py
 
 Open `http://127.0.0.1:8040`. This local preview serves the exact embedded page with example status and simulated controls. Changes last only for the preview session; no hardware or calendar is connected.
 
+## Design decisions and field lessons
+
+| Constraint | What testing revealed | Design response |
+| --- | --- | --- |
+| The display should answer one question without becoming another distracting classroom screen. | More information would compete with the calm, glanceable purpose. | Keep the normal state to one large rotation letter, using motion only as brief secondary feedback. |
+| The schedule changes during the year and should not require firmware edits. | A manually maintained CSV is useful as a fallback, but published links are easy to format incorrectly and duplicate a calendar that staff already updates. | Treat exact `Day X` events from the public school calendar as the authority, then fall back to current or cached CSV data. |
+| The finished unit may be mounted out of reach. | Repeated USB access is inconvenient. | Add password-protected OTA updates and local web controls, while retaining USB and serial as recovery paths. |
+| Joining the same Wi-Fi does not guarantee that devices can reach one another. | The managed school guest network allowed the ESP8266 to fetch its schedule but isolated local clients, blocking mDNS, the control page, and OTA access from a laptop. | Treat wireless administration as network-dependent, support direct-IP troubleshooting, and keep USB updating available instead of making OTA the only maintenance path. |
+| Bright LEDs improve visibility but expose the enclosure's optical weaknesses. | Higher brightness increased spill into neighboring translucent segments and reduced letter clarity. | Save a lower brightness on-device, use the model's “diffuser” as an opaque baffle, and test a separate translucent front diffuser. |
+| External schedule data can be missing, stale, or contradictory. | Guessing the rotation would make the object confidently wrong. | Prefer the calendar, retain a cached fallback, and show an unknown indicator or remain dark when the state cannot be trusted. |
+
+Visual behavior was refined by the same rule: preserve readability first. The normal letter no longer “breathes,” the highlight sweep is brief and infrequent, the final-minute numeral became a clockwise spinner, and the end-of-day smiley was replaced with a cycle of abstract animations that better suits the segmented display.
+
 ## Where it stands
 
-**Working hardware prototype.** The project notes record successful USB flashing, Wi-Fi provisioning, and basic LED rendering. The full physical LED-map scan, power-supply rating, and on-device calendar sync still need confirmation. Those checks remain open; firmware features alone are not evidence of a finished installation.
+**Working classroom prototype.** USB flashing, Wi-Fi provisioning, LED rendering, and calendar-based rotation have been exercised on the installed unit. The managed school network currently prevents local wireless administration, so USB remains the dependable update and diagnostic path there. A formal 27-index LED-map verification and power-supply ceiling check are still open.
 
 ## How it works
 
