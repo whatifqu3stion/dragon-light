@@ -8,9 +8,32 @@ This project combines classroom experience, physical making, and embedded softwa
 
 ## Preview
 
+### Physical prototype
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/previews/display-wall-aday.jpg" alt="Wall-mounted Dragon Light showing a blue A" width="300">
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/previews/esp28-messy.jpg" alt="Exposed ESP8266 controller and prototype wiring behind the Dragon Light" width="300">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The wall-mounted display showing an A day.</sub></td>
+    <td align="center"><sub>The ESP8266, power, and data wiring during prototype assembly.</sub></td>
+  </tr>
+</table>
+
+The physical build is working, but the translucent segment faces expose an enclosure tradeoff: at close range and higher brightness, light from active LEDs can spill into neighboring channels and soften the letter. The effect is less noticeable at normal classroom viewing distance, but it reduces clarity in photographs and darker rooms.
+
+Current mitigation combines software and hardware. The local control page provides lower, persistent brightness settings; the model part labeled as a “diffuser” works more accurately as an opaque internal baffle; and a separate thin translucent front diffuser can be added to soften individual LED hotspots. Further iteration is focused on blocking cross-segment light without losing even illumination.
+
+### Local control interface
+
 ![Dragon Light local firmware controls with a selected display mode and example device status](docs/previews/local-controls.jpg)
 
-The firmware's local control page, rendered with example device status. Brightness and display modes share one responsive panel, with a visible selected mode and connection feedback. The page runs directly from the device without external fonts, scripts, or services. A photograph of the physical classroom display would complement it.
+The firmware's local control page, rendered with example device status. Brightness and display modes share one responsive panel, with a visible selected mode and connection feedback. The page runs directly from the device without external fonts, scripts, or services.
 
 <details>
 <summary>Mobile control interface</summary>
