@@ -82,18 +82,9 @@ The firmware separates the physical LED routing from letters, effects, and sched
 
 ### Architecture
 
-```mermaid
-flowchart TD
-    A["Public calendar<br/>primary source"] --> D["Schedule resolver"]
-    B["Published CSV<br/>fallback"] --> D
-    C["LittleFS cache<br/>offline fallback"] --> D
-    D --> E["Today's trusted rotation"]
-    F["NTP time<br/>class windows"] --> G["Display state"]
-    E --> G
-    G --> H["Letter, countdown,<br/>spinner, or celebration"]
-    H --> I["16 logical segments"]
-    I --> J["27 physical LEDs"]
-```
+<p align="center">
+  <img src="docs/previews/dragon-light-architecture.png" alt="Dragon Light architecture: calendar, CSV, and cached schedules feed a resolver; trusted rotation, time, and controls select a display state that is rendered through logical segments to physical LEDs" width="900">
+</p>
 
 The schedule resolver uses explicit dated records rather than assuming the rotation advances every weekday. Display behavior then combines the trusted rotation with current time, while the final mapping layer isolates the unusual physical strip routing from the letter and animation logic.
 
