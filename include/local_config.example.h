@@ -5,8 +5,9 @@
 
 #define DRAGON_LIGHT_OTA_PASSWORD "choose-a-strong-local-password"
 
-// Optional password for the temporary Dragon-Light-Setup access point.
-// Leave empty for an open setup AP. If set, WiFiManager requires 8+ characters.
+// Password for both the temporary Dragon-Light-Setup network and the always-on
+// Dragon-Light-Control hotspot. Use a strong password 8-63 characters long.
+// Leaving it empty disables the direct-control hotspot.
 #define DRAGON_LIGHT_SETUP_PASSWORD "choose-8-plus-characters"
 
 // Published CSV endpoint. A Google Sheet published with ?output=csv works well.

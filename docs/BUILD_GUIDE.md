@@ -211,6 +211,31 @@ This control page is local HTTP, not encrypted HTTPS. Do not forward its port
 to the internet. Wi-Fi reset and schedule sync remain serial-only recovery and
 diagnostic operations.
 
+## Direct Wi-Fi controls (school network isolation workaround)
+
+After provisioning, Dragon Light also broadcasts **`Dragon-Light-Control`** even
+while it remains connected to the school Wi-Fi for calendar and time updates.
+This works around school networks that prevent one client from reaching another.
+
+1. On your phone, join `Dragon-Light-Control` using the password configured
+   as `DRAGON_LIGHT_SETUP_PASSWORD` in your local `include/local_config.h`.
+2. Open **http://192.168.4.1** directly in your phone browser. The phone may
+   report “no internet” for this Wi-Fi network; stay connected anyway.
+3. Sign in to the web controls with username `dragon` and the separate
+   `DRAGON_LIGHT_OTA_PASSWORD`. Use Auto, Off, brightness, and previews normally.
+4. Reconnect your phone to your normal Wi-Fi/cellular connection afterward.
+
+The control hotspot does **not** provide internet access to your phone. Both the
+school connection and hotspot share the ESP8266's single 2.4 GHz radio, so the
+hotspot follows the school's Wi-Fi channel. The hotspot starts after the normal
+WiFiManager setup process, not during first-time provisioning.
+
+**Security:** The hotspot is disabled unless the setup password is 8–63
+characters long; never leave it blank if you need direct controls. Choose
+different strong OTA and setup passwords. Control HTTP uses authentication but
+does not encrypt traffic, so use it only in your trusted physical surroundings.
+This network is for local controls, not school internet access.
+
 ## Changing Wi-Fi later
 
 If the network name or password changes, send `resetwifi` over the serial monitor. Dragon Light clears the stored credentials, restarts, and broadcasts `Dragon-Light-Setup` again.

@@ -37,6 +37,7 @@ constexpr uint8_t kMinBrightness = 5;
 constexpr uint8_t kMaxBrightness = 128;
 constexpr char kHostname[] = "dragon-light";
 constexpr char kSetupApName[] = "Dragon-Light-Setup";
+constexpr char kControlApName[] = "Dragon-Light-Control";
 constexpr char kScheduleCachePath[] = "/schedule.csv";
 constexpr char kBrightnessPath[] = "/brightness.txt";
 
