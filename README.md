@@ -1,10 +1,10 @@
 # Dragon Light
 
-## About
+A small classroom display that answers a surprisingly common question: **what day of the rotation is it?**
 
-Dragon Light is a wall-mounted ESP8266 and addressable-LED display built for an eight-day school rotation spelled **B E D R A G O N**. It reads the live school calendar, shows today's rotation letter at a glance, counts down class transitions, and turns off overnight.
+My school uses an eight-day schedule spelled **B E D R A G O N**. Dragon Light turns that schedule into one illuminated character, visible at a glance. It also counts down the final minutes before class and turns off overnight.
 
-The project combines classroom experience, physical prototyping, and embedded software to create a calm information object rather than another screen competing for attention.
+This project combines classroom experience, physical making, and embedded software. The design aim is a useful object that can sit quietly in a room, rather than another screen competing for attention.
 
 ## Preview
 
