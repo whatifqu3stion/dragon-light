@@ -189,8 +189,11 @@ void setupOta() {
 }
 
 bool authorizeWebRequest() {
-  if (strlen(config::kOtaPassword) == 0 ||
-      webServer.authenticate("dragon", config::kOtaPassword)) {
+  if (strlen(config::kOtaPassword) == 0) {
+    webServer.send(503, "text/plain", "Configure a device password over USB before enabling web controls.");
+    return false;
+  }
+  if (webServer.authenticate("dragon", config::kOtaPassword)) {
     return true;
   }
   webServer.requestAuthentication();
